@@ -36,39 +36,39 @@ def main():
     global upload_destination
     global target
 
-if not len(sys.argv[1:]):
-    usage()
-
-try:
-    opts,args = getopt.getopt(sys.argv[1:],"hle:t:p:cu:", ["help", "listen","execute","target","port","command","upload"])
-except getopt.GetoptError as err:
-    print (str(err))
-    usage()
-
-
-for o,a in opts:
-    if o in ("-h", "--help"):
+    if not len(sys.argv[1:]):
         usage()
-    elif o in ("-l","--listen"):
-        listen = True
-    elif o in ("-e","--execute"):
-        execute = a
-    elif o in ("-c","--commandshell"):
-        command = True
-    elif o in ("-u","--upload"):
-        upload_destination = a
-    elif o in ("-t", "--target"):
-        target = a
-    elif o in ("-p","--port"):
-        port = int(a)
-    else:
-        assert False, "Unhandled Option"
 
-buffer =sys.stdin.read()
+    try:
+        opts,args = getopt.getopt(sys.argv[1:],"hle:t:p:cu:", ["help", "listen","execute","target","port","command","upload"])
+    except getopt.GetoptError as err:
+        print (str(err))
+        usage()
 
-client_sender(buffer)
-if listen:
-    server_loop()
+
+    for o,a in opts:
+        if o in ("-h", "--help"):
+            usage()
+        elif o in ("-l","--listen"):
+            listen = True
+        elif o in ("-e","--execute"):
+            execute = a
+        elif o in ("-c","--commandshell"):
+            command = True
+        elif o in ("-u","--upload"):
+            upload_destination = a
+        elif o in ("-t", "--target"):
+            target = a
+        elif o in ("-p","--port"):
+            port = int(a)
+        else:
+            assert False, "Unhandled Option"
+
+    buffer =sys.stdin.read()
+
+    client_sender(buffer)
+    if listen:
+        server_loop()
 
 main()
 
@@ -99,3 +99,16 @@ def client_sender(buffer):
         print("[*] Exception! Exiting")
 
         client.close()
+
+def server_loop():
+    global target
+    if not len(target):
+        target = "0.0.0.0"
+    server = socket.socket(socket.AF_INET , socket.SOCK_STREAM)
+    server.bind((target,port))
+    server.listen(5)
+
+    while True:
+        client_socket, addr = server.accept()
+        client_thread = threading.Thread(target=client_handler, args=(client_socket,))
+        client_thread.start()
