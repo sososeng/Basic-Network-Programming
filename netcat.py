@@ -112,3 +112,15 @@ def server_loop():
         client_socket, addr = server.accept()
         client_thread = threading.Thread(target=client_handler, args=(client_socket,))
         client_thread.start()
+
+
+def run_command(command):
+    #trim the new line
+    command = command.rstrip()
+
+    try:
+        output = subprocess.check_output(command,stderr=subprocess.STDOUT,shell=True)
+    except:
+        output = "Failed to execute command.\r\n"
+
+    return (output)
